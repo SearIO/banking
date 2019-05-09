@@ -7,7 +7,8 @@ class Dashboard extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      action: 'DEPOSIT'
+      action: 'DEPOSIT',
+      transactions: []
     }
   }
 
@@ -117,9 +118,41 @@ class Dashboard extends Component {
               </tbody>
             </table> */}
         <div className='info'>
-          <div class='mw9 center ph3-ns'>
-            <div class='cf ph2-ns'>
-              <div class='fl w-100 w-50-ns pa2'>
+          <div
+            class='mw9 center ph3-ns'
+            style={{
+              padding: 0,
+              margin: 0,
+              maxWidth: '100vw'
+            }}
+          >
+            <div
+              class='cf ph2-ns'
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: 0,
+                margin: 0,
+                maxWidth: '100vw'
+              }}
+            >
+              <div class='fl pa2' style={{ width: '33%' }}>
+                <div class='bg-white pv4'>
+                  <article class='mw5 mw6-ns hidden ba mv4'>
+                    <h1 class='f4 bg-near-black white mv0 pv2 ph3'>
+                      User Info
+                    </h1>
+                    <div class='pa3 bt'>
+                      <p class='f6 f5-ns lh-copy measure mv0'>
+                        Username : {this.state.username} <br />
+                        Name : {this.state.name} <br />
+                        SSN : {this.state.ssn} <br />
+                      </p>
+                    </div>
+                  </article>
+                </div>
+              </div>
+              <div class='fl pa2' style={{ width: '33%' }}>
                 <div class='bg-white pv4'>
                   <article class='mw5 mw6-ns hidden ba mv4'>
                     <h1 class='f4 bg-near-black white mv0 pv2 ph3'>
@@ -152,7 +185,7 @@ class Dashboard extends Component {
                         </a>{' '}
                         <a
                           class='f6 link dim ba ph3 pv2 mb2 dib black'
-                          href='#0'
+                          href='/contact'
                         >
                           Support
                         </a>{' '}
@@ -170,7 +203,7 @@ class Dashboard extends Component {
                   </article>
                 </div>
               </div>
-              <div class='fl w-100 w-50-ns pa2'>
+              <div class='fl pa2' style={{ width: '33%' }}>
                 <div class='bg-white pv4'>
                   <Action
                     action={this.state.action}
@@ -274,7 +307,7 @@ class Dashboard extends Component {
                       <th class='pv2 ph3 tl f6 fw6 ttu'>Description</th>
                       <th class='tr f6 ttu fw6 pv2 ph3'>Amount</th>
                     </tr>
-                    {this.state.transactions &&
+                    {this.state.transactions.length > 0 &&
                       this.state.transactions.map((txn, id) => (
                         <tr key={id} class='striped--near-white '>
                           <td class='pv2 ph3'>
@@ -302,6 +335,7 @@ class Dashboard extends Component {
             </div>
           </div>
         </div>
+
         <footer class='pa4 pa5-l black-70 bt b--black-10'>
           <div class='mb4-l cf'>
             <h1 class='fl w-100 pv0 f6 fw6 ttu tracked mb4'>CONTACT US</h1>
