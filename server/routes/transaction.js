@@ -13,20 +13,28 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false })
 router.get('/', async (req, res) => {
   try {
     console.log(req.user)
-    let transactions = await Transaction.find({ $or: [{ 'from.id': req.user.username }, { 'to.id': req.user.username }] })
-    res.status(200).send(transactions)
+    let transactions = await Transaction.find({
+      $or: [{ 'from.id': req.user.username }, { 'to.id': req.user.username }]
+    })
+    res
+      .status(200)
+      .send(
+        transactions.length > 5
+          ? transactions.reverse().slice(0, 5)
+          : transactions
+      )
   } catch (err) {
     res.status(400).send({ err: err.toString() })
   }
 })
 router.post('/newtxn', async function (req, res, next) {
   let { from, to, amount, type } = req.body
-  console.log(req.user.username)
   try {
     if ([from.id, to.id].includes(req.user.username)) {
       amount = parseInt(amount)
       let newtxn = new Transaction(req.body)
-      let fromUser = from.id && await User.findOne({ username: from.id }); let toUser = to.id && await User.findOne({ username: to.id })
+      let fromUser = from.id && (await User.findOne({ username: from.id }))
+      let toUser = to.id && (await User.findOne({ username: to.id }))
       if (fromUser) {
         if (from.type == 'CHECKING') {
           if (fromUser.checkingBalance - amount < 0) {

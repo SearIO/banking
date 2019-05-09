@@ -10,13 +10,21 @@ import Map from './Map'
 const Router = ({ onLogin, user }) => (
   <BrowserRouter>
     <Switch>
-      <Route exact path="/" component={App}/>
-      <Route path="/signup" component={Signup}/>
-      <Route path='/login' render={ () => <Login onLogin={onLogin} />} />
-      <Route path='/app' render={ () => <Dashboard user={user} onLogin={onLogin}/>} />
-      <Route path='/atm' render={ () => <Map/>} />
+      <Route
+        exact
+        path='/'
+        component={() =>
+          localStorage.getItem('jwtToken') ? (
+            <Dashboard user={user} onLogin={onLogin} />
+          ) : (
+            <App />
+          )
+        }
+      />
+      <Route path='/signup' component={Signup} />
+      <Route path='/login' render={() => <Login onLogin={onLogin} />} />
+      <Route path='/atm' render={() => <Map />} />
       <Route path='/contact' render={() => <Contact />} />
-
     </Switch>
   </BrowserRouter>
 )

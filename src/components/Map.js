@@ -1,66 +1,133 @@
-import React, { Component } from 'react';
-import StickyNav from './StickyNav';
-import axios from 'axios'
-import { GoogleMap, Marker } from "react-google-maps"
-// import './css/Signup.css'
-
-const apikey = 'AIzaSyCrode7wSxsfPX4IlbaVh2veVDC8ab0nRc'
-
-class Map extends Component {
-  constructor() {
-    super();
-    this.state = {
-      username: '',
-      password: ''
-    };
-  }
-  onChange = (e) => {
-    const state = this.state
-    state[e.target.name] = e.target.value;
-    this.setState(state);
-  }
-
-  onSubmit = (e) => {
-    e.preventDefault();
-
-    const { username, password } = this.state;
-    console.log('Signup submitted', username, password);
-
-    axios.post('/api/auth/register', { username, password })
-      .then((result) => {
-        this.props.history.push("/login")
-      });
-  }
-  render() { 
-    const { username, password } = this.state;
-    return ( 
-      <article class="vh-100 dt w-100 bg-dark-blue code">
-        <div class="dtc v-mid tc white ph3 ph4-l">
-        <h1 className="f1">Find Nearby ATM</h1>
-          <article class="pa4 black-80 code center">
-            <form action="sign-up_submit" method="get" accept-charset="utf-8" onSubmit={this.onSubmit}>
-              <fieldset id="sign_up" class="ba b--transparent ph0 mh0">
-                <legend class="ph0 mh0 fw6 clip">Sign Up</legend>
-                  <div class="mt3">
-                    <label class="db fw4 lh-copy f6" for="email-address">Email address</label>
-                    <input class="form-control pa2 input-reset ba bg-transparent w-100 measure" name="username"  id="email-address"
-                    type="email" placeholder="Email address" value={username} onChange={this.onChange} required />
-                  </div>
-                  <div class="mt3">
-                    <label class="db fw4 lh-copy f6" for="password">Password</label>
-                    <input class="form-control b pa2 input-reset ba bg-transparent" type="password" name="password"  id="password"
-                     placeholder="Password" value={password} onChange={this.onChange} required />
-                  </div>
-              </fieldset>
-                  <div class="mt3">
-                    <input class="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6" type="submit" value="Sign Up" />
-                  </div>
-            </form>
-          </article>
-        </div>
-      </article>
-     );
+import React, { Component } from 'react'
+import { Map, InfoWindow, Marker, GoogleApiWrapper } from 'google-maps-react'
+import { CubeGrid } from 'better-react-spinkit'
+import { Link } from 'react-router-dom'
+import './css/map.css'
+const apiKey = 'AIzaSyCrode7wSxsfPX4IlbaVh2veVDC8ab0nRc'
+class MapContainer extends Component {
+  render () {
+    return (
+      <Map
+        google={this.props.google}
+        zoom={13}
+        center={this.props.center}
+        onReady={this.props.fetchPlaces}
+      >
+        {this.props.markers &&
+          this.props.markers.map(marker => <Marker position={marker} />)}
+      </Map>
+    )
   }
 }
- 
-export default Map;
+MapContainer = GoogleApiWrapper({
+  apiKey,
+  LoadingContainer: CubeGrid
+})(MapContainer)
+class Maps extends Component {
+  fetchPlaces = (mapProps, map) => {
+    const { google } = mapProps
+    const service = new google.maps.places.PlacesService(map)
+    this.setState({ service, google })
+  }
+  getLocation = location => {
+    let { service, google } = this.state
+    service.findPlaceFromQuery(
+      {
+        query: location,
+        fields: ['geometry']
+      },
+      (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          let res = results[0]
+          let center = {
+            lat: res.geometry.location.lat(),
+            lng: res.geometry.location.lng()
+          }
+          service.nearbySearch(
+            {
+              location: center,
+              radius: 5000,
+              name: 'Chase Bank'
+            },
+            (markers, stat) => {
+              if (stat === google.maps.places.PlacesServiceStatus.OK) {
+                markers = markers.map(m => ({
+                  lat: m.geometry.location.lat(),
+                  lng: m.geometry.location.lng()
+                }))
+                console.log(markers)
+                this.setState({
+                  markers,
+                  center
+                })
+              }
+            }
+          )
+        }
+      }
+    )
+  }
+  render () {
+    return (
+      <div>
+        <nav class='bg-black flex justify-between bb b--white-10'>
+          <a
+            class='link white-70 hover-white no-underline flex items-center pa3'
+            href=''
+          >
+            <svg
+              class='dib h1 w1'
+              data-icon='grid'
+              viewBox='0 0 32 32'
+              style={{ fill: 'currentcolor' }}
+            >
+              <title>Spartan Banking</title>
+              <path d='M2 2 L10 2 L10 10 L2 10z M12 2 L20 2 L20 10 L12 10z M22 2 L30 2 L30 10 L22 10z M2 12 L10 12 L10 20 L2 20z M12 12 L20 12 L20 20 L12 20z M22 12 L30 12 L30 20 L22 20z M2 22 L10 22 L10 30 L2 30z M12 22 L20 22 L20 30 L12 30z M22 22 L30 22 L30 30 L22 30z' />
+            </svg>
+          </a>
+          <div class='flex-grow pa3 flex items-center'>
+            <a class='f6 link dib white dim mr3 mr4-ns'>
+              <Link to='/'>Dashboard</Link>
+            </a>
+            <a class='f6 link dib white dim mr3 mr4-ns'>
+              <Link to='/contact'>Support</Link>
+            </a>
+          </div>
+        </nav>
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+            let location = document.getElementById('text').value
+            this.getLocation(location)
+          }}
+          class='pa4 black-80'
+          style={{ fontFamily: 'sans-serif' }}
+        >
+          <div class='measure-narrow'>
+            <label for='password' class='f6 b db mb2'>
+              Location
+            </label>
+            <input
+              class='input-reset ba b--black-20 pa2 mb2 db w-100'
+              type='text'
+              id='text'
+              aria-describedby='text-desc'
+            />
+            <small id='password-desc' class='f6 lh-copy black-60 db mb2'>
+              Enter the location to find atms around
+            </small>
+          </div>
+        </form>
+        <div>
+          <MapContainer
+            center={this.state && this.state.center}
+            markers={this.state && (this.state.markers || [])}
+            fetchPlaces={this.fetchPlaces}
+          />
+        </div>
+      </div>
+    )
+  }
+}
+
+export default Maps

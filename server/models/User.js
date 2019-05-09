@@ -3,10 +3,8 @@ var Schema = mongoose.Schema
 var bcrypt = require('bcrypt-nodejs')
 
 var TransactionSchema = new mongoose.Schema({
-  from: { type: String,
-    unique: false },
-  to: { type: String,
-    unique: false },
+  from: { type: String, unique: false },
+  to: { type: String, unique: false },
   amount: { type: Number },
   timestamp: { type: Date, default: Date.now }
 })
@@ -23,8 +21,11 @@ var UserSchema = new Schema({
   },
   checkingBalance: { type: Number, default: 250 },
   savingsBalance: { type: Number, default: 500 },
-  transactions: [TransactionSchema]
-
+  transactions: [TransactionSchema],
+  isClosed: { type: Boolean, default: false },
+  dob: Date,
+  ssn: String,
+  name: String
 })
 
 UserSchema.pre('save', function (next) {
@@ -55,5 +56,14 @@ UserSchema.methods.comparePassword = function (passw, cb) {
     cb(null, isMatch)
   })
 }
-
+UserSchema.methods.close = function (cb) {
+  this.isClosed = true
+  this.save()
+  cb(this)
+}
+UserSchema.methods.open = function (cb) {
+  this.isClosed = false
+  this.save()
+  cb(this)
+}
 module.exports = mongoose.model('User', UserSchema)
